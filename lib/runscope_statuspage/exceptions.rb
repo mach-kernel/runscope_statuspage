@@ -6,4 +6,5 @@ module RunscopeStatuspage
 	end
 
 	class RequestFailedException < Exception
+	end
 end

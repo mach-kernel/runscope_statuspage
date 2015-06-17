@@ -1,4 +1,5 @@
-require_relative 'runscope_statuspage/exceptions'
+require_relative 'exceptions'
+require 'httparty'
 
 module RunscopeStatuspage
 
@@ -7,7 +8,7 @@ class RunscopeAPI
 	base_uri 'https://api.runscope.com/'
 
 	def initialize(token)
-		@options = { headers: {"Authorization": "Bearer #{token}"} }
+		@options = { headers: {"Authorization" => "Bearer #{token}"} }
 	end
 
 	def buckets
@@ -21,24 +22,36 @@ class RunscopeAPI
 		end
 	end
 
-	def all_radars(bucket)
-		all_radars = self.class.get("/buckets/#{bucket}/radar", @options)
-		if all_radars.has_key?("meta") and all_radars.has_key?("data")
-			if all_radars["meta"]["status"] == "success"
-				all_radars["data"]
+	def radars(bucket)
+		radars = self.class.get("/buckets/#{bucket}/radar", @options)
+		if radars.has_key?("meta") and radars.has_key?("data")
+			if radars["meta"]["status"] == "success"
+				radars["data"]
 			else
-				raise RunscopeAPIException.new, all_radars.to_s
+				raise RunscopeAPIException.new, radars.to_s
 			end
 		end
 	end
 
-	def one_radar(bucket, radar)
-		one_radar = self.class.get("/buckets/#{bucket}/radar/#{radar}", @options)
-		if one_radar.has_key?("meta") and one_radar.has_key?("data")
-			if one_radar["meta"]["status"] == "success"
-				one_radar["data"]
+	def find_bucket_by_name(name)
+		self.buckets.each do |bucket|
+			return bucket if bucket["name"] == name 
+		end
+	end
+
+	def find_radar_by_name(name)
+		self.radars.each do |radar|
+			return radar if radar["name"] == name
+		end
+	end
+
+	def get_radar(bucket, radar)
+		get_radar = self.class.get("/buckets/#{bucket}/radar/#{radar}", @options)
+		if get_radar.has_key?("meta") and get_radar.has_key?("data")
+			if get_radar["meta"]["status"] == "success"
+				get_radar["data"]
 			else
-				raise RunscopeAPIException.new, one_radar.to_s
+				raise RunscopeAPIException.new, get_radar.to_s
 			end
 		end
 	end
