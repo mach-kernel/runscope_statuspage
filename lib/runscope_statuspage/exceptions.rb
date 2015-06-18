@@ -1,13 +1,13 @@
 module RunscopeStatuspage
-	class RunscopeAPIException < Exception
-	end
+  class RunscopeAPIException < Exception
+  end
 
-	class StatuspageAPIException < Exception
-	end
+  class StatuspageAPIException < Exception
+  end
 
-	class RequestFailedException < Exception
-	end
+  class RequestFailedException < Exception
+  end
 
-	class UserInputException < Exception
-	end
+  class UserInputException < Exception
+  end
 end

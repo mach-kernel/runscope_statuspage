@@ -1,8 +1,6 @@
 # RunscopeStatuspage
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/runscope_statuspage`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Do you use [RunScope](https://runscope.com) to test your API, and [StatusPage](https://statuspage.io) to show it all off to your customers? Don't want to write bindings for both APIs? If yes, RunscopeStatuspage is perfect for you.
 
 ## Installation
 
@@ -22,7 +20,28 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+In a nutshell, each call will grab metrics from RunScope then send them over to StatusPage, once per call. There is no scheduling done by this gem, it is left as an exercise for the reader. Ideally, you will want to use something such as [Sidekiq](https://github.com/mperham/sidekiq) or [Resque](https://github.com/resque/resque) to fire these jobs off every few minutes/hours. Keep in mind that StatusPage will rate-limit requests to its API, one request per minute. 
+
+### You can...
+
+* from general to specific *
+
+- report_everything(page, status, twitter_update)
+- report_buckets(bucket_names, status, twitter_update)
+- report_bucket(bucket_name, status, twitter_update)
+- report_radars(bucket_name, radar_names, status, twitter_update)
+- report_radar(bucket_name, radar_name, status, twitter_update)
+
+#### Important Notes
+
+- `status` must be either `investigating|identified|monitoring|resolved`.
+- RunScope likes to throw ISEs if you specify invalid IDs or names, just keep this in mind.
+
+### Glossary
+
+- bucket: A group of radars/tests.
+- radar: A test with one or more assertions.
+- twitter_update parameter: StatusPage can spit incidents out to Twitter, this is a toggle for this functionality.
 
 ## Development
 
