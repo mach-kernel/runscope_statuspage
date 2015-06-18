@@ -9,7 +9,7 @@ module RunscopeStatuspage
 
     # Set credentials
     def initialize(token)
-      @options = { headers: {:Authorization => "Bearer #{token}"} }
+      @options = { headers: {"Authorization" => "Bearer #{token}"} }
     end
 
     # Get list of buckets
