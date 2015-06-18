@@ -1,6 +1,5 @@
 require_relative 'exceptions'
 require 'httparty'
-require 'awesome_print'
 
 module RunscopeStatuspage
 

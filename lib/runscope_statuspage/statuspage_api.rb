@@ -12,7 +12,6 @@ class StatuspageAPI
 	end
 
 	def create_realtime_incident(page, name, msg, status, twitter)
-		ap [page, name, msg, status, twitter]
 		self.class.post("/pages/#{page}/incidents.json", @options.merge!(body: {"incident" => {
 			"name" => name,
 			"message" => msg, 
