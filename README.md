@@ -37,6 +37,10 @@ In a nutshell, each call will grab metrics from RunScope then send them over to 
 - `status` must be either `investigating|identified|monitoring|resolved`.
 - RunScope likes to throw ISEs if you specify invalid IDs or names, just keep this in mind.
 
+#### I want bindings!
+
+Have them! `RunscopeStatuspage::RunscopeAPI` and `RunscopeStatuspage::StatuspageAPI` contain partial coverage of each service's API.
+
 ### Glossary
 
 - bucket: A group of radars/tests.

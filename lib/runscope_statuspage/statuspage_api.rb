@@ -21,6 +21,20 @@ module RunscopeStatuspage
                                                                                 :wants_twitter_update => twitter
       }}))
     end
+
+    # Publish data for a custom page metric
+    def push_metric_data(page_id, metric_id, data, timestamp)
+      self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options.merge!(data: {:data => {
+                                                                                                   :value => data,
+                                                                                                   :timestamp => timestamp
+      }})))
+    end
+
+    # Delete all data for a custom page metric
+    def clear_metric_data
+      self.class.delete("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options)
+    end
+
   end
 
 end
