@@ -1,28 +1,35 @@
-require_relative "runscope_statuspage/version"
-require_relative "runscope_statuspage/exceptions"
-require_relative "runscope_statuspage/runscope_api"
-require_relative "runscope_statuspage/statuspage_api"
+require_relative 'runscope_statuspage/version'
+require_relative 'runscope_statuspage/exceptions'
+require_relative 'runscope_statuspage/runscope_api'
+require_relative 'runscope_statuspage/statuspage_api'
 
 module RunscopeStatuspage
+  # Let Ruby write boring getters and setters
 	class << self; attr_accessor :rs_key, :sp_key, :sp_page, :name, :msg; end
 
-	@rs_key = ""
-	@sp_key = ""
-	@sp_page = ""
+  # API credentials and IDs
+	@rs_key = ''
+	@sp_key = ''
+	@sp_page = ''
 
-	@name = "Suspected issues with /name/"
-	@msg = "Our automated test detected an issue while testing the /description/ endpoint. We are currently investigating this issue."
+  # Verbage sent to statuspage
+	@name = 'Suspected issues with /name/'
+	@msg = 'Our automated test detected an issue while testing the /description/ endpoint. We are currently investigating this issue.'
 
+  # As the user may decide (for whatever reason)
+  # to change API keys after one request, we re-initialize
+  # these objects.
 	def self.reinit_rest
 		@rs = RunscopeAPI.new(@rs_key)
 		@sp = StatuspageAPI.new(@sp_key)
 	end
 
+  # Splice radar hash values from keys defined in
+  # @name and @msg.
 	def self.parameterize(radar)
 		rname = @name
 		rmsg = @msg
 
-		# Do actual tokenization, skip delimiters
 		@name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
 			set.each do |token|
 				if radar.has_key?(token)
@@ -42,34 +49,84 @@ module RunscopeStatuspage
 		return rname, rmsg
 	end
 
+  # Update status page with all radars, from all buckets.
+  # An error will most likely be thrown if you have empty buckets.
 	def self.report_everything(page, status, twitter_update)
 		reinit_rest
 
 		@rs.buckets.each do |bucket|
-			@rs.radars(bucket["key"]).each do |radar|
-				if @rs.latest_radar_result(bucket["key"], radar["uuid"])["result"] != "pass"
+			@rs.radars(bucket['key']).each do |radar|
+				if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
 					@sp.create_realtime_incident(@sp_page, *parameterize(radar).concat([status, twitter_update]))
 				end
 			end
 		end
 	end
 
-	def self.report_radar(bucket_name, radar, status)
-
-	end
-
-	def self.report_bucket(bucket_name, status, twitter_update)
+  # Update status page with one radar, from one bucket.
+	def self.report_radar(bucket_name, radar_name, status, twitter_update)
 		reinit_rest
 
 		@rs.buckets.each do |bucket|
-			if bucket["name"] == bucket_name
-				@rs.radars(bucket["key"]).each do |radar|					
-					if @rs.latest_radar_result(bucket["key"], radar["uuid"])["result"] != "pass"
+			if bucket['name'] == bucket_name
+				@rs.radars(bucket['key']).each do |radar|
+					if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar['name'] == radar_name
 						@sp.create_realtime_incident(@sp_page, *parameterize(radar).concat([status, twitter_update]))
 					end
 				end
 			end
-		end		
-	end
+    end
+
+  end
+
+  # Update status page with list of radars, from one bucket.
+  def self.report_radars(bucket_name, radar_names, status, twitter_update)
+    reinit_rest
+
+    @rs.buckets.each do |bucket|
+      if bucket['name'] == bucket_name
+        @rs.radars(bucket['key']).each do |radar|
+          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar_names.include?(radar['name'])
+            @sp.create_realtime_incident(@sp_page, *parameterize(radar).concat([status, twitter_update]))
+          end
+        end
+      end
+    end
+
+  end
+
+  # Update status page with all radars under passed
+  # bucket name.
+	def self.report_bucket(bucket_name, status, twitter_update)
+		reinit_rest
+
+		@rs.buckets.each do |bucket|
+			if bucket['name'] == bucket_name
+				@rs.radars(bucket['key']).each do |radar|
+					if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+						@sp.create_realtime_incident(@sp_page, *parameterize(radar).concat([status, twitter_update]))
+					end
+				end
+			end
+    end
+
+  end
+
+  # Update status page with all radars under the specified
+  # buckets
+  def self.report_buckets(bucket_names, status, twitter_update)
+    reinit_rest
+
+    @rs.buckets.each do |bucket|
+      if bucket_names.include?(bucket['name'])
+        @rs.radars(bucket['key']).each do |radar|
+          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+            @sp.create_realtime_incident(@sp_page, *parameterize(radar).concat([status, twitter_update]))
+          end
+        end
+      end
+    end
+
+  end
 	
 end
