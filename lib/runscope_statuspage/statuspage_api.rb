@@ -27,7 +27,7 @@ module RunscopeStatuspage
       self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options.merge!(data: {:data => {
                                                                                                    :value => data,
                                                                                                    :timestamp => timestamp
-      }})))
+      }}))
     end
 
     # Delete all data for a custom page metric
