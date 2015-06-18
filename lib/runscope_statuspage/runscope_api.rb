@@ -1,11 +1,12 @@
 require_relative 'exceptions'
 require 'httparty'
+require 'awesome_print'
 
 module RunscopeStatuspage
 
 class RunscopeAPI
 	include HTTParty
-	base_uri 'https://api.runscope.com/'
+	base_uri 'https://api.runscope.com'
 
 	def initialize(token)
 		@options = { headers: {"Authorization" => "Bearer #{token}"} }
@@ -17,7 +18,7 @@ class RunscopeAPI
 			if buckets["meta"]["status"] == "success"
 				buckets["data"]
 			else
-				raise RunscopeAPIException.new, buckets.to_s
+				raise RunscopeAPIException.new, buckets["error"]
 			end
 		end
 	end
@@ -28,7 +29,7 @@ class RunscopeAPI
 			if radars["meta"]["status"] == "success"
 				radars["data"]
 			else
-				raise RunscopeAPIException.new, radars.to_s
+				raise RunscopeAPIException.new, radars["error"]
 			end
 		end
 	end
@@ -51,7 +52,7 @@ class RunscopeAPI
 			if get_radar["meta"]["status"] == "success"
 				get_radar["data"]
 			else
-				raise RunscopeAPIException.new, get_radar.to_s
+				raise RunscopeAPIException.new, get_radar["error"]
 			end
 		end
 	end
@@ -62,7 +63,7 @@ class RunscopeAPI
 			if lrr["meta"]["status"] == "success"
 				lrr["data"]
 			else
-				raise RunscopeAPIException.new, lrr.to_s
+				raise RunscopeAPIException.new, lrr["error"]
 			end
 		end
 	end
