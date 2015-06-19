@@ -24,7 +24,7 @@ module RunscopeStatuspage
 
     # Publish data for a custom page metric
     def push_metric_data(page_id, metric_id, data, timestamp)
-      self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options.merge!(data: {"data" => {
+      self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options.merge!(body: {"data" => {
                                                                                                    "value" => data,
                                                                                                    "timestamp" => timestamp
       }}))

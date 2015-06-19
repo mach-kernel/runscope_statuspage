@@ -24,6 +24,12 @@ module RunscopeStatuspage
       end
     end
 
+    def bucket_id_by_name(name)
+      self.buckets.each do |bucket|
+        return bucket["key"] if bucket["name"] == name 
+      end
+    end
+
     # Get list of radars for bucket
     def radars(bucket)
       radars = self.class.get("/buckets/#{bucket}/radar", @options)
@@ -56,6 +62,30 @@ module RunscopeStatuspage
           lrr['data']
         else
           raise RunscopeAPIException.new, lrr['error']
+        end
+      end
+    end
+
+    # Get latest messages
+    def messages(bucket, count)
+      messages = self.class.get("/buckets/#{bucket_id_by_name(bucket)}/messages?count=#{count}", @options)
+      if messages.has_key?('meta') and messages.has_key?('data')
+        if messages['meta']['status'] == 'success'
+          messages['data']
+        else
+          raise RunscopeAPIException.new, messages['error']
+        end
+      end
+    end
+
+    # Get message detail
+    def message_detail(bucket, message)
+      detail = self.class.get("/buckets/#{bucket}/messages/#{message}", @options)
+      if detail.has_key?('meta') and detail.has_key?('data')
+        if detail['meta']['status'] == 'success'
+          detail['data']
+        else
+          raise RunscopeAPIException.new, detail['error']
         end
       end
     end
