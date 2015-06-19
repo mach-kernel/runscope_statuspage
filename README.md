@@ -24,7 +24,7 @@ In a nutshell, each call will grab metrics from RunScope then send them over to 
 
 ### You can...
 
-* from general to specific *
+*from general to specific*
 
 - report_everything(page, status, twitter_update)
 - report_buckets(bucket_names, status, twitter_update)
