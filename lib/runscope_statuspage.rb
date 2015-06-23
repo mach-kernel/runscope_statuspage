@@ -128,7 +128,7 @@ module RunscopeStatuspage
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
           if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and opts[:radar_names].include?(radar['name'])
-            failed_radars += 1
+            failed_radars.push radar
           end
         end
       end
@@ -161,7 +161,7 @@ module RunscopeStatuspage
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
           if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-            failed_radars += 1
+            failed_radars.push radar
           end
         end
       end
@@ -195,7 +195,7 @@ module RunscopeStatuspage
       if opts[:bucket_names].include?(bucket['name'])
         @rs.radars(bucket['key']).each do |radar|
           if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-            failed_radars += 1
+            failed_radars.push radar
           end
         end
       end
