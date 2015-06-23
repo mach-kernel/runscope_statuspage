@@ -8,9 +8,7 @@ module RunscopeStatuspage
   class << self; attr_accessor :rs_key, :sp_key, :sp_page, :name, :msg; end
 
   # API credentials and IDs
-  @rs_key = ''
-  @sp_key = ''
-  @sp_page = ''
+  @rs_key, @sp_key, @sp_page = ''
 
   # Verbage sent to statuspage
   @name = 'Suspected issues with /name/'
@@ -27,8 +25,7 @@ module RunscopeStatuspage
   # Splice radar hash values from keys defined in
   # @name and @msg.
   def self.parameterize(radar)
-    rname = @name
-    rmsg = @msg
+    rname = @name, rmsg = @msg
 
     @name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
