@@ -10,4 +10,8 @@ module RunscopeStatuspage
 
   class UserInputException < Exception
   end
+
+  class MissingArgumentException < Exception
+
+  end
 end

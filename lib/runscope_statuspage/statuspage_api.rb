@@ -31,7 +31,7 @@ module RunscopeStatuspage
     end
 
     # Delete all data for a custom page metric
-    def clear_metric_data
+    def clear_metric_data(page_id, metric_id)
       self.class.delete("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options)
     end
 

@@ -24,9 +24,10 @@ module RunscopeStatuspage
       end
     end
 
+    # Get bucket ID by name
     def bucket_id_by_name(name)
       self.buckets.each do |bucket|
-        return bucket["key"] if bucket["name"] == name 
+        return bucket["key"] if bucket["name"] == name
       end
     end
 
