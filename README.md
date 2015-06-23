@@ -22,6 +22,7 @@ Or install it yourself as:
 
 In a nutshell, each call will grab metrics from RunScope then send them over to StatusPage, once per call. There is no scheduling done by this gem, it is left as an exercise for the reader. Ideally, you will want to use something such as [Sidekiq](https://github.com/mperham/sidekiq) or [Resque](https://github.com/resque/resque) to fire these jobs off every few minutes/hours. Keep in mind that StatusPage will rate-limit requests to its API, one request per minute. 
 
+
 ### Poll for incidents
 
 *from general to specific:*
