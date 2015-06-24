@@ -5,7 +5,7 @@ require_relative 'runscope_statuspage/statuspage_api'
 
 module RunscopeStatuspage
   # Let Ruby write boring getters and setters
-  class << self; attr_accessor :rs_key, :sp_key, :sp_page, :name, :msg; end
+  class << self; attr_accessor :rs_key, :sp_key, :sp_page, :name, :msg, :rs, :sp; end
 
   # API credentials and IDs
   @rs_key, @sp_key, @sp_page = ''

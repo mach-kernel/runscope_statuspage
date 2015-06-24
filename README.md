@@ -104,6 +104,9 @@ Usage:
 
 ## Changelog
 
+0.1.4
+* Added attr_accessor for `@rs` and `@sp`.
+
 0.1.3
 * Changed all functions in `RunscopeStatuspage` to use `options = {}` hash for better readability.
 * Added `opts[:fail_on]` threshold parameter for greater granularity.
