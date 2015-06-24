@@ -25,7 +25,8 @@ module RunscopeStatuspage
   # Splice radar hash values from keys defined in
   # @name and @msg.
   def self.parameterize(radar)
-    rname = @name, rmsg = @msg
+    rname = @name
+    rmsg = @msg
 
     @name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
@@ -62,8 +63,13 @@ module RunscopeStatuspage
     reinit_rest
     @rs.buckets.each do |bucket|
       @rs.radars(bucket['key']).each do |radar|
-        if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-          failed_radars.push radar
+        begin
+          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+            failed_radars.push radar
+          end
+        rescue RunscopeAPIException => r
+          p r
+          next
         end
       end
     end
@@ -94,8 +100,13 @@ module RunscopeStatuspage
     @rs.buckets.each do |bucket|
       if bucket['name'] == bucket_name
         @rs.radars(bucket['key']).each do |radar|
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar['name'] == radar_name
-            failed_radars.push radar
+          begin
+            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar['name'] == radar_name
+              failed_radars.push radar
+            end
+          rescue RunscopeAPIException => r
+            p r
+            next
           end
         end
       end
@@ -127,8 +138,13 @@ module RunscopeStatuspage
     @rs.buckets.each do |bucket|
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and opts[:radar_names].include?(radar['name'])
-            failed_radars.push radar
+          begin
+            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and opts[:radar_names].include?(radar['name'])
+              failed_radars.push radar
+            end
+          rescue RunscopeAPIException => r
+            p r
+            next
           end
         end
       end
@@ -160,8 +176,13 @@ module RunscopeStatuspage
     @rs.buckets.each do |bucket|
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-            failed_radars.push radar
+          begin
+            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+              failed_radars.push radar
+            end
+          rescue RunscopeAPIException => r
+            p r
+            next
           end
         end
       end
@@ -194,8 +215,13 @@ module RunscopeStatuspage
     @rs.buckets.each do |bucket|
       if opts[:bucket_names].include?(bucket['name'])
         @rs.radars(bucket['key']).each do |radar|
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-            failed_radars.push radar
+          begin
+            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+              failed_radars.push radar
+            end
+          rescue RunscopeAPIException => r
+            p r
+            next
           end
         end
       end

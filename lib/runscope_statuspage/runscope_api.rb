@@ -50,7 +50,8 @@ module RunscopeStatuspage
         if get_radar['meta']['status'] == 'success'
           get_radar['data']
         else
-          raise RunscopeAPIException.new, get_radar['error']
+          raise RunscopeAPIException.new,
+                "Error attempting to get radar info for #{bucket}, #{radar}: #{get_radar['error']}"
         end
       end
     end
@@ -62,7 +63,8 @@ module RunscopeStatuspage
         if lrr['meta']['status'] == 'success'
           lrr['data']
         else
-          raise RunscopeAPIException.new, lrr['error']
+          raise RunscopeAPIException.new,
+                "Error attempting to fetch latest radar result for #{bucket}, #{radar}: #{lrr['error']}"
         end
       end
     end
@@ -74,7 +76,8 @@ module RunscopeStatuspage
         if messages['meta']['status'] == 'success'
           messages['data']
         else
-          raise RunscopeAPIException.new, messages['error']
+          raise RunscopeAPIException.new,
+                "Error attempting to fetch messages for #{bucket}: #{detail['error']}"
         end
       end
     end
@@ -86,7 +89,8 @@ module RunscopeStatuspage
         if detail['meta']['status'] == 'success'
           detail['data']
         else
-          raise RunscopeAPIException.new, detail['error']
+          raise RunscopeAPIException.new,
+                "Error attempting to fetch message detail for #{bucket}, #{message}: #{detail['error']}"
         end
       end
     end

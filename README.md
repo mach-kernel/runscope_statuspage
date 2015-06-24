@@ -68,6 +68,7 @@ opts = {:bucket_name => 'name of bucket containing radars',
 
 - `status` must be either `investigating|identified|monitoring|resolved`.
 - RunScope likes to throw ISEs if you specify invalid IDs or names, just keep this in mind.
+- If an exception is thrown while calling `latest_radar_result` in any of the above, it will not halt execution. This is to prevent breaking integrations when a new test is added and `runscope_statuspage` polls before it has the chance to run.
 
 #### Runscope Bindings
 Usage: 
@@ -107,6 +108,8 @@ Usage:
 * Changed all functions in `RunscopeStatuspage` to use `options = {}` hash for better readability.
 * Added `opts[:fail_on]` threshold parameter for greater granularity.
 * Fixed no parameter issue on `StatuspageAPI.clear_metric_data`
+* More informative exception messages
+* Better error handling (not being able to retrieve a radar's latest result will not bring the whole sweep of operations for that bucket down).
 
 0.1.2
 * Added Statuspage metrics bindings.

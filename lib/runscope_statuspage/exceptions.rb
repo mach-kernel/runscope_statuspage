@@ -5,12 +5,6 @@ module RunscopeStatuspage
   class StatuspageAPIException < Exception
   end
 
-  class RequestFailedException < Exception
-  end
-
-  class UserInputException < Exception
-  end
-
   class MissingArgumentException < Exception
 
   end
