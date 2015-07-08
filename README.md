@@ -31,21 +31,24 @@ In a nutshell, each call will grab metrics from RunScope then send them over to 
 ```ruby
 opts = {:status => "page status (either 'investigating|identified|monitoring|resolved')",
 :twitter_update => 'do you want to post status to twitter (bool)',
-:fail_on => 'number of failures to induce statuspage update (int, default 0)'}
+:fail_on => 'number of failures to induce statuspage update (int, default 0)',
+:no_sp => skip statuspage.io report and return data}
 ```
 - *report_buckets:* Report all radars of buckets in list.
 ```ruby
 opts = {:bucket_names => 'list of names of buckets containing radars',
 :status => "page status (either 'investigating|identified|monitoring|resolved')",
 :twitter_update => 'do you want to post status to twitter (bool)',
-:fail_on => 'number of failures to induce statuspage update (int, default 0)'}
+:fail_on => 'number of failures to induce statuspage update (int, default 0)',
+:no_sp => skip statuspage.io report and return data}
 ```
 - *report_bucket:* Report all radars in bucket.
 ```ruby
 opts = {:bucket_name => 'name of bucket containing radars',
 :status => "page status (either 'investigating|identified|monitoring|resolved')",
 :twitter_update => 'do you want to post status to twitter (bool)',
-:fail_on => 'number of failures to induce statuspage update (int, default 0)'}
+:fail_on => 'number of failures to induce statuspage update (int, default 0)',
+:no_sp => skip statuspage.io report and return data}
 ```
 - *report_radars:* Report radars in list for given bucket.
 ```ruby
@@ -53,7 +56,8 @@ opts = {:bucket_name => 'name of bucket containing radars',
 :radar_names => 'list of names of radars within bucket',
 :status => "page status (either 'investigating|identified|monitoring|resolved')",
 :twitter_update => 'do you want to post status to twitter (bool)',
-:fail_on => 'number of failures to induce statuspage update (int, default 0)'}
+:fail_on => 'number of failures to induce statuspage update (int, default 0)',
+:no_sp => skip statuspage.io report and return data}
 ```
 - *report_radar:* Report one radar in bucket.
 ```ruby
@@ -61,7 +65,8 @@ opts = {:bucket_name => 'name of bucket containing radars',
 :radar_name => 'name of radar within bucket',
 :status => "page status (either 'investigating|identified|monitoring|resolved')",
 :twitter_update => 'do you want to post status to twitter (bool)',
-:fail_on => 'number of failures to induce statuspage update (int, default 0)'}
+:fail_on => 'number of failures to induce statuspage update (int, default 0)',
+:no_sp => skip statuspage.io report and return data}
 ```
 
 #### Important Notes
@@ -103,6 +108,9 @@ Usage:
 - twitter_update parameter: StatusPage can spit incidents out to Twitter, this is a toggle for this functionality.
 
 ## Changelog
+
+0.1.5
+* Added `:no_sp` to available options so that data can be returned instead of posting to statuspage.io. Useful for SMS notifications.
 
 0.1.4
 * Added attr_accessor for `@rs` and `@sp`.
