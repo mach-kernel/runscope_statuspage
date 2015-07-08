@@ -31,6 +31,7 @@ module RunscopeStatuspage
     @name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
         if radar.has_key?(token)
+          next if radar[:token].nil?
           rname = rname.sub!("/#{token}/", radar[token]) unless (token == "/" and token.length == 1)
         end
       end
@@ -39,6 +40,7 @@ module RunscopeStatuspage
     @msg.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
         if radar.has_key?(token)
+          next if radar[:token].nil?
           rmsg = rmsg.sub!("/#{token}/", radar[token]) unless (token == "/" and token.length == 1)
         end
       end
@@ -62,6 +64,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
 
     failed_radars = []
+    event_info = []
 
     reinit_rest
     @rs.buckets.each do |bucket|
@@ -82,9 +85,11 @@ module RunscopeStatuspage
         data = *parameterize(radar)
 
         @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        data if opts[:no_sp]
+        event_info.push data if opts[:no_sp]
       end
     end
+
+    event_info if opts[:no_sp]
   end
 
   # Update status page with one radar, from one bucket.
@@ -104,6 +109,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
 
     failed_radars = []
+    event_info = []
 
     reinit_rest
     @rs.buckets.each do |bucket|
@@ -126,9 +132,11 @@ module RunscopeStatuspage
         data = *parameterize(radar)
 
         @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        data if opts[:no_sp]
+        event_info.push data if opts[:no_sp]
       end
     end
+
+    event_info if opts[:no_sp]
   end
 
   # Update status page with list of radars, from one bucket.
@@ -148,6 +156,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
 
     failed_radars = []
+    event_info = []
 
     reinit_rest
     @rs.buckets.each do |bucket|
@@ -170,9 +179,11 @@ module RunscopeStatuspage
         data = *parameterize(radar)
 
         @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        data if opts[:no_sp]
+        event_info.push data if opts[:no_sp]
       end
     end
+
+    event_info if opts[:no_sp]
   end
 
   # Update status page with all radars under passed
@@ -192,6 +203,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
 
     failed_radars = []
+    event_info = []
 
     reinit_rest
     @rs.buckets.each do |bucket|
@@ -214,9 +226,11 @@ module RunscopeStatuspage
         data = *parameterize(radar)
 
         @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        data if opts[:no_sp]
+        event_info.push data if opts[:no_sp]
       end
     end
+
+    event_info if opts[:no_sp]
   end
 
   # Update status page with all radars under the specified
@@ -236,6 +250,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
     
     failed_radars = []
+    event_info = []
 
     reinit_rest
 
@@ -259,9 +274,11 @@ module RunscopeStatuspage
         data = *parameterize(radar)
 
         @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        data if opts[:no_sp]
+        event_info.push data if opts[:no_sp]
       end
     end
+
+    event_info if opts[:no_sp]
   end
 
 end
