@@ -109,6 +109,9 @@ Usage:
 
 ## Changelog
 
+0.1.6
+* Fix interpolation bug.
+
 0.1.5
 * Added `:no_sp` to available options so that data can be returned instead of posting to statuspage.io. Useful for SMS notifications.
 * Fix bug where gem crashes when a key with a null value is used in the incident strings. 

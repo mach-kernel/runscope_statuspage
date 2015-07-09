@@ -31,7 +31,7 @@ module RunscopeStatuspage
     @name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
         if radar.has_key?(token)
-          next if radar[:token].nil?
+          next if radar["#{token}"].nil?
           rname = rname.sub!("/#{token}/", radar[token]) unless (token == "/" and token.length == 1)
         end
       end
@@ -40,7 +40,7 @@ module RunscopeStatuspage
     @msg.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
         if radar.has_key?(token)
-          next if radar[:token].nil?
+          next if radar["#{token}"].nil?
           rmsg = rmsg.sub!("/#{token}/", radar[token]) unless (token == "/" and token.length == 1)
         end
       end
