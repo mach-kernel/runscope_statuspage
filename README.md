@@ -109,6 +109,9 @@ Usage:
 
 ## Changelog
 
+0.1.7
+* Runscope now reports if a test is `working`. Alerts will no longer be fired for `working` tests; if failures occur they will be caught on next execution.
+
 0.1.6
 * Fix interpolation bug.
 

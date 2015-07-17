@@ -70,7 +70,9 @@ module RunscopeStatuspage
     @rs.buckets.each do |bucket|
       @rs.radars(bucket['key']).each do |radar|
         begin
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+          latest = @rs.latest_radar_result(bucket['key'], radar['uuid'])
+          
+          if latest['result'] != 'pass' and latest['result'] != 'working'
             failed_radars.push radar
           end
         rescue RunscopeAPIException => r
@@ -116,7 +118,9 @@ module RunscopeStatuspage
       if bucket['name'] == bucket_name
         @rs.radars(bucket['key']).each do |radar|
           begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar['name'] == radar_name
+            latest = @rs.latest_radar_result(bucket['key'], radar['uuid'])
+            
+            if latest['result'] != 'pass' and radar['name'] == radar_name and latest['result'] != 'working'
               failed_radars.push radar
             end
           rescue RunscopeAPIException => r
@@ -163,7 +167,9 @@ module RunscopeStatuspage
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
           begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and opts[:radar_names].include?(radar['name'])
+            latest = @rs.latest_radar_result(bucket['key'], radar['uuid'])
+
+            if latest['result'] != 'pass' and opts[:radar_names].include?(radar['name']) and latest['result'] != 'working'
               failed_radars.push radar
             end
           rescue RunscopeAPIException => r
@@ -210,9 +216,11 @@ module RunscopeStatuspage
       if bucket['name'] == opts[:bucket_name]
         @rs.radars(bucket['key']).each do |radar|
           begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-              failed_radars.push radar
-            end
+          latest = @rs.latest_radar_result(bucket['key'], radar['uuid'])
+          
+          if latest['result'] != 'pass' and latest['result'] != 'working'
+            failed_radars.push radar
+          end
           rescue RunscopeAPIException => r
             p r
             next
@@ -250,6 +258,7 @@ module RunscopeStatuspage
     opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
     
     failed_radars = []
+    
     event_info = []
 
     reinit_rest
@@ -258,9 +267,11 @@ module RunscopeStatuspage
       if opts[:bucket_names].include?(bucket['name'])
         @rs.radars(bucket['key']).each do |radar|
           begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-              failed_radars.push radar
-            end
+          latest = @rs.latest_radar_result(bucket['key'], radar['uuid'])
+          
+          if latest['result'] != 'pass' and latest['result'] != 'working'
+            failed_radars.push radar
+          end
           rescue RunscopeAPIException => r
             p r
             next
