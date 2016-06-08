@@ -43,7 +43,7 @@ module RunscopeStatuspage
       end
     end
 
-    # Get a radar, from a bucket.
+    # Get a radar, from a bucket
     def get_radar(bucket, radar)
       get_radar = self.class.get("/buckets/#{bucket}/radar/#{radar}", @options)
       if get_radar.has_key?('meta') and get_radar.has_key?('data')

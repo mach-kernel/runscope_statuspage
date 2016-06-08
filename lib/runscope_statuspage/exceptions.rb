@@ -6,6 +6,5 @@ module RunscopeStatuspage
   end
 
   class MissingArgumentException < Exception
-
   end
 end

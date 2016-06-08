@@ -14,11 +14,13 @@ module RunscopeStatuspage
 
     # Create incident
     def create_realtime_incident(page, name, msg, status, twitter)
-      incident = self.class.post("/pages/#{page}/incidents.json", @options.merge!(body: {"incident" => {
-                                                                                "name" => name,
-                                                                                "message" => msg,
-                                                                                "status" => status.nil? ? 'investigating' : status,
-                                                                                "wants_twitter_update" => twitter
+      incident = self.class.post("/pages/#{page}/incidents.json",
+        @options.merge!(
+          body: {"incident" => {
+                 "name" => name,
+                 "message" => msg,
+                 "status" => status.nil? ? 'investigating' : status,
+                 "wants_twitter_update" => twitter
       }}))
 
       raise StatuspageAPIException.new,
@@ -27,9 +29,11 @@ module RunscopeStatuspage
 
     # Publish data for a custom page metric
     def push_metric_data(page_id, metric_id, data, timestamp)
-      reply = self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json", @options.merge!(body: {"data" => {
-                                                                                                   "value" => data,
-                                                                                                   "timestamp" => timestamp
+      reply = self.class.post("/pages/#{page_id}/metrics/#{metric_id}/data.json",
+        @options.merge!(
+          body: {"data" => {
+                 "value" => data,
+                 "timestamp" => timestamp
       }}))
 
       raise StatuspageAPIException.new,

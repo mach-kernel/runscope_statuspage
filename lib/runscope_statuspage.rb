@@ -4,40 +4,24 @@ require_relative 'runscope_statuspage/runscope_api'
 require_relative 'runscope_statuspage/statuspage_api'
 
 module RunscopeStatuspage
-  # Let Ruby write boring getters and setters
   class << self; attr_accessor :rs_key, :sp_key, :sp_page, :name, :msg, :rs, :sp; end
-
-  # API credentials and IDs
   @rs_key, @sp_key, @sp_page = ''
 
-  # Verbage sent to statuspage
-  @name = 'Suspected issues with /name/'
-  @msg = 'Our automated test detected an issue while testing the /description/ endpoint. We are currently investigating this issue.'
-
-  # As the user may decide (for whatever reason)
-  # to change API keys after one request, we re-initialize
-  # these objects.
+  # Re-initialize in case user changes API keys
   def self.reinit_rest
     @rs = RunscopeAPI.new(@rs_key)
     @sp = StatuspageAPI.new(@sp_key)
   end
 
-  # Splice radar hash values from keys defined in
-  # @name and @msg.
-  def self.parameterize(radar)
-    rname = @name
-    rmsg = @msg
+  # Verbage sent to statuspage
+  @name = 'Suspected issues with "/name/"'
+  @msg = 'Our automated test detected an issue while testing the "/description/" endpoint and our team was notified of the issue.'
 
-    @name.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
-      set.each do |token|
-        if radar.has_key?(token)
-          next if radar["#{token}"].nil?
-          rname = rname.sub!("/#{token}/", radar[token]) unless (token == "/" and token.length == 1)
-        end
-      end
-    end
+  # Splice radar hash values from keys defined in @name and @msg.
+  def self.parameterizeMsg(radar, msg)
+    rmsg = msg
 
-    @msg.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
+    msg.scan(/.*?(\/)([A-Za-z]*)(\/)/).each do |set|
       set.each do |token|
         if radar.has_key?(token)
           next if radar["#{token}"].nil?
@@ -46,239 +30,178 @@ module RunscopeStatuspage
       end
     end
 
-    return rname, rmsg
+    return rmsg
   end
 
-  # Update status page with all radars, from all buckets.
-  # An error will most likely be thrown if you have empty buckets.
-  #
-  # Parameters: {:status => page status (either 'investigating|identified|monitoring|resolved'),
-  #              :twitter_update => do you want to post status to twitter (bool),
-  #              :fail_on => number of failures to induce statuspage update (int, default 0),
-  #              :no_sp => skip statuspage.io report and return data}
-  def self.report_everything(opts={})
-    raise MissingArgumentException.new, 'report_everything is missing arguments' \
-      if not (opts.key?(:status) or opts.key?(:twitter_update))
+  def self.parameterize(radar)
+    return *parameterizeMsg(radar, @name), *parameterizeMsg(radar, @msg)
+  end
 
-    opts[:fail_on] = opts.key?(:fail_on) ? opts[:fail_on] : 0
-    opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
+  def self.get_failure_msgs_and_create_incidents(failed_radars, status, twitter_update, fail_on, no_sp)
+    failure_msgs = []
 
-    failed_radars = []
-    event_info = []
-
-    reinit_rest
-    @rs.buckets.each do |bucket|
-      @rs.radars(bucket['key']).each do |radar|
-        begin
-          if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-            failed_radars.push radar
-          end
-        rescue RunscopeAPIException => r
-          p r
-          next
-        end
-      end
-    end
-
-    if failed_radars.length >= opts[:fail_on]
+    if failed_radars.length >= fail_on
       failed_radars.each do |radar|
         data = *parameterize(radar)
 
-        @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        event_info.push data if opts[:no_sp]
+        @sp.create_realtime_incident(@sp_page, data.concat([status, twitter_update])) if not no_sp
+        failure_msgs.push data
       end
     end
 
-    event_info if opts[:no_sp]
+    return failure_msgs
   end
 
-  # Update status page with one radar, from one bucket.
+  def self.get_bucket(bucket_name)
+    @rs.buckets.each do |bucket|
+      if bucket['name'] == bucket_name
+        return bucket
+      end
+    end
+  end
+
+  def self.radar_failed?(bucket, radar)
+    @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
+  end
+
+  def self.get_failed_radars(bucket, radar_names, all_radars = false)
+    failed_radars = []
+
+    if  bucket
+      @rs.radars(bucket['key']).each do |radar|
+          begin
+            if (all_radars or radar_names.include?(radar['name'])) and radar_failed?(bucket, radar)
+              failed_radars.push radar
+            end
+          rescue RunscopeAPIException => r
+            p r
+            next
+          end
+        end
+    end
+
+    return failed_radars
+  end
+
+  # Update status page with the specified radar from the specified bucket.
   #
   # Parameters: {:bucket_name => name of bucket containing radars,
   #              :radar_name => name of radar within bucket,
   #              :status => page status (either 'investigating|identified|monitoring|resolved'),
   #              :twitter_update => do you want to post status to twitter (bool),
   #              :fail_on => number of failures to induce statuspage update (int, default 0),
-  #              :no_sp => skip statuspage.io report and return data}
+  #              :no_sp => skip statuspage.io report}
   def self.report_radar(opts = {})
     raise MissingArgumentException.new, 'report_radar is missing arguments' \
       if not (opts.key?(:status) or opts.key?(:twitter_update) \
       or opts.key?(:bucket_name) or opts.key?(:radar_name))
-
-    opts[:fail_on] = opts.key?(:fail_on) ? opts[:fail_on] : 0
-    opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
-
-    failed_radars = []
-    event_info = []
-
     reinit_rest
-    @rs.buckets.each do |bucket|
-      if bucket['name'] == bucket_name
-        @rs.radars(bucket['key']).each do |radar|
-          begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and radar['name'] == radar_name
-              failed_radars.push radar
-            end
-          rescue RunscopeAPIException => r
-            p r
-            next
-          end
-        end
-      end
-    end
 
-    if failed_radars.length >= opts[:fail_on]
-      failed_radars.each do |radar|
-        data = *parameterize(radar)
-
-        @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        event_info.push data if opts[:no_sp]
-      end
-    end
-
-    event_info if opts[:no_sp]
+    bucket = get_bucket(opts[:bucket_name])
+    return get_failure_msgs_and_create_incidents(
+      get_failed_radars(bucket, [opts[:radar_name]]),
+      opts[:status],
+      opts[:twitter_update],
+      opts.key?(:fail_on) ? opts[:fail_on] : 0,
+      opts.key?(:no_sp) ? opts[:no_sp] : false)
   end
 
-  # Update status page with list of radars, from one bucket.
+  # Update status page with all specified radars from the specified bucket.
   #
   # Parameters: {:bucket_name => name of bucket containing radars,
   #              :radar_names => list of names of radars within bucket,
   #              :status => page status (either 'investigating|identified|monitoring|resolved'),
   #              :twitter_update => do you want to post status to twitter (bool),
   #              :fail_on => number of failures to induce statuspage update (int, default 0),
-  #              :no_sp => skip statuspage.io report and return data}
+  #              :no_sp => skip statuspage.io report}
   def self.report_radars(opts = {})
     raise MissingArgumentException.new, 'report_radars is missing arguments' \
       if not (opts.key?(:status) or opts.key?(:twitter_update) \
       or opts.key?(:bucket_name) or opts.key?(:radar_names))
-
-    opts[:fail_on] = opts.key?(:fail_on) ? opts[:fail_on] : 0
-    opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
-
-    failed_radars = []
-    event_info = []
-
     reinit_rest
-    @rs.buckets.each do |bucket|
-      if bucket['name'] == opts[:bucket_name]
-        @rs.radars(bucket['key']).each do |radar|
-          begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass' and opts[:radar_names].include?(radar['name'])
-              failed_radars.push radar
-            end
-          rescue RunscopeAPIException => r
-            p r
-            next
-          end
-        end
-      end
-    end
 
-    if failed_radars.length >= opts[:fail_on]
-      failed_radars.each do |radar|
-        data = *parameterize(radar)
-
-        @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        event_info.push data if opts[:no_sp]
-      end
-    end
-
-    event_info if opts[:no_sp]
+    bucket = get_bucket(opts[:bucket_name])
+    return get_failure_msgs_and_create_incidents(
+      get_failed_radars(bucket, opts[:radar_names]),
+      opts[:status],
+      opts[:twitter_update],
+      opts.key?(:fail_on) ? opts[:fail_on] : 0,
+      opts.key?(:no_sp) ? opts[:no_sp] : false)
   end
 
-  # Update status page with all radars under passed
-  # bucket name.
+  # Update status page with all radars from the specified bucket.
   #
   # Parameters: {:bucket_name => name of bucket containing radars,
   #              :status => page status (either 'investigating|identified|monitoring|resolved'),
   #              :twitter_update => do you want to post status to twitter (bool),
   #              :fail_on => number of failures to induce statuspage update (int, default 0),
-  #              :no_sp => skip statuspage.io report and return data}
+  #              :no_sp => skip statuspage.io report}
   def self.report_bucket(opts={})
     raise MissingArgumentException.new, 'report_bucket is missing arguments' \
       if not (opts.key?(:status) or opts.key?(:twitter_update) \
       or opts.key?(:bucket_name))
-
-    opts[:fail_on] = opts.key?(:fail_on) ? opts[:fail_on] : 0
-    opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
-
-    failed_radars = []
-    event_info = []
-
     reinit_rest
-    @rs.buckets.each do |bucket|
-      if bucket['name'] == opts[:bucket_name]
-        @rs.radars(bucket['key']).each do |radar|
-          begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-              failed_radars.push radar
-            end
-          rescue RunscopeAPIException => r
-            p r
-            next
-          end
-        end
-      end
-    end
 
-    if failed_radars.length >= opts[:fail_on]
-      failed_radars.each do |radar|
-        data = *parameterize(radar)
-
-        @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        event_info.push data if opts[:no_sp]
-      end
-    end
-
-    event_info if opts[:no_sp]
+    bucket = get_bucket(opts[:bucket_name])
+    return get_failure_msgs_and_create_incidents(
+      get_failed_radars(bucket, [], true),
+      opts[:status],
+      opts[:twitter_update],
+      opts.key?(:fail_on) ? opts[:fail_on] : 0,
+      opts.key?(:no_sp) ? opts[:no_sp] : false)
   end
 
-  # Update status page with all radars under the specified
-  # buckets
+  # Update status page with all radars from all specified buckets.
   #
   # Parameters: {:bucket_names => list of names of buckets containing radars,
   #              :status => page status (either 'investigating|identified|monitoring|resolved'),
   #              :twitter_update => do you want to post status to twitter (bool),
   #              :fail_on => number of failures to induce statuspage update (int, default 0),
-  #              :no_sp => skip statuspage.io report and return data}
-  def self.report_buckets(bucket_names, status, twitter_update)
+  #              :no_sp => skip statuspage.io report}
+  def self.report_buckets(opts={})
     raise MissingArgumentException.new, 'report_buckets is missing arguments' \
       if not (opts.key?(:status) or opts.key?(:twitter_update) \
       or opts.key?(:bucket_name))
-
-    opts[:fail_on] = opts.key?(:fail_on) ? opts[:fail_on] : 0
-    opts[:no_sp] = opts.key?(:no_sp) ? opts[:no_sp] : false
-    
-    failed_radars = []
-    event_info = []
-
     reinit_rest
+
+    failed_radars = []
 
     @rs.buckets.each do |bucket|
       if opts[:bucket_names].include?(bucket['name'])
-        @rs.radars(bucket['key']).each do |radar|
-          begin
-            if @rs.latest_radar_result(bucket['key'], radar['uuid'])['result'] != 'pass'
-              failed_radars.push radar
-            end
-          rescue RunscopeAPIException => r
-            p r
-            next
-          end
-        end
+        failed_radars.concat get_failed_radars(bucket, [], true)
       end
     end
 
-    if failed_radars.length >= opts[:fail_on]
-      failed_radars.each do |radar|
-        data = *parameterize(radar)
-
-        @sp.create_realtime_incident(@sp_page, data.concat([opts[:status], opts[:twitter_update]])) if not opts[:no_sp]
-        event_info.push data if opts[:no_sp]
-      end
-    end
-
-    event_info if opts[:no_sp]
+    return get_failure_msgs_and_create_incidents(
+      failed_radars,
+      opts[:status],
+      opts[:twitter_update],
+      opts.key?(:fail_on) ? opts[:fail_on] : 0,
+      opts.key?(:no_sp) ? opts[:no_sp] : false)
   end
 
+  # Update status page with all radars from all buckets.
+  #
+  # Parameters: {:status => page status (either 'investigating|identified|monitoring|resolved'),
+  #              :twitter_update => do you want to post status to twitter (bool),
+  #              :fail_on => number of failures to induce statuspage update (int, default 0),
+  #              :no_sp => skip statuspage.io report}
+  def self.report_everything(opts={})
+    raise MissingArgumentException.new, 'report_everything is missing arguments' \
+      if not (opts.key?(:status) or opts.key?(:twitter_update))
+    reinit_rest
+
+    failed_radars = []
+
+    @rs.buckets.each do |bucket|
+      failed_radars.concat get_failed_radars(bucket, [], true)
+    end
+
+    return get_failure_msgs_and_create_incidents(
+      failed_radars,
+      opts[:status],
+      opts[:twitter_update],
+      opts.key?(:fail_on) ? opts[:fail_on] : 0,
+      opts.key?(:no_sp) ? opts[:no_sp] : false)
+  end
 end
